@@ -19,22 +19,34 @@ for img in imglist:
     (filename, file_extension) = os.path.splitext(img)
     mpimg.imsave(filename + "_PROCESSED" + file_extension, final_image)
 
+cap = cv2.VideoCapture(0)
+
+# Define the codec and create VideoWriter object
+fourcc = cv2.VideoWriter_fourcc(*'XVID')
+out = cv2.VideoWriter('output.avi',fourcc, 20.0, (640,480))
+
 # Step 2: Performing lane detection on all test videos
-vidlist = ['test_videos/challenge.mp4', \
-           'test_videos/solidWhiteRight.mp4', \
-           'test_videos/solidYellowLeft.mp4']
+vidlist = ['test_videos/solidWhiteRight.mp4', \
+           'test_videos/solidYellowLeft.mp4', \
+           'test_videos/challenge.mp4']
 for vid in vidlist:
     (filename, file_extension) = os.path.splitext(vid)
 
     cap = cv2.VideoCapture(vid)
-    fourcc = cv2.VideoWriter_fourcc(*'H264')
-    out = cv2.VideoWriter(filename + "_PROCESSED" + file_extension, fourcc, 20.0, (640, 480))
+    fourcc = cv2.VideoWriter_fourcc(*'XVID')
+    out = cv2.VideoWriter(filename + "_PROCESSED" + '.avi', fourcc, 20.0, (640, 480))
 
-    while (cap.isOpened()):
+    while cap.isOpened():
         (ret, frame) = cap.read()
-        final_image = helpers.lane_detect(frame)
-        out.write(final_image)
-        cv2.imshow('frame', final_image)
+        if ret:
+            final_image = helpers.lane_detect(frame, UseOpenCV=True)
+            out.write(final_image)
+            cv2.imshow('final_image', final_image)
+            if cv2.waitKey(1) & 0xFF == ord('q'):
+                break
+        else:
+            break
 
     cap.release()
     out.release()
+    cv2.destroyAllWindows()

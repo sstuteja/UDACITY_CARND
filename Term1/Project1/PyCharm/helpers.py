@@ -2,11 +2,14 @@ import math
 import cv2
 import numpy as np
 
-def lane_detect(image):
+def lane_detect(image, UseOpenCV=False):
     """Perform lane detection"""
 
     # Obtain grayscale version of this image
-    gray_image = grayscale(image)
+    if not UseOpenCV:
+        gray_image = grayscale(image)
+    else:
+        gray_image = grayscale_OpenCV(image)
 
     # Apply Gaussian blurring
     blur_image = gaussian_blur(gray_image, kernel_size=3)
@@ -70,6 +73,10 @@ def grayscale(img):
     return cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
     # Or use BGR2GRAY if you read an image with cv2.imread()
     # return cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+
+def grayscale_OpenCV(img):
+    """Applies the Grayscale transform"""
+    return cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     
 def canny(img, low_threshold, high_threshold):
     """Applies the Canny transform"""
