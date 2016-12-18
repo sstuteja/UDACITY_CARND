@@ -2,6 +2,40 @@ import math
 import cv2
 import numpy as np
 
+def lane_detect(image):
+    """Perform lane detection"""
+
+    # Obtain grayscale version of this image
+    gray_image = grayscale(image)
+
+    # Apply Gaussian blurring
+    blur_image = gaussian_blur(gray_image, kernel_size=3)
+
+    # Perform histogram equalization
+    histeq_image = histeq(blur_image)
+
+    # Perform thresholding
+    binary_image = threshold_image_gray(histeq_image, threshold=220)
+
+    # Perform Canny edge detection
+    edge_image = canny(binary_image, low_threshold=100, high_threshold=200)
+
+    # Perform region masking
+    ysize = image.shape[0]
+    xsize = image.shape[1]
+    vertices = np.array([[0, ysize], [xsize, ysize], [xsize * 0.55, 0.6 * ysize], [xsize * 0.45, 0.6 * ysize]],
+                        np.int32)
+    binary_image_masked = region_of_interest(edge_image, vertices)
+
+    # Apply Hough Transform
+    line_image = np.copy(image) * 0  # creating a blank to draw lines on
+    line_image = hough_lines(binary_image_masked, rho=1, theta=np.pi / 180, threshold=1, min_line_len=3,
+                                     max_line_gap=10)
+
+    final_image = weighted_img(line_image, image)
+
+    return final_image
+
 def threshold_image_color(img, red_threshold, green_threshold, blue_threshold):
     """
     Performs image thresholding for color images.
