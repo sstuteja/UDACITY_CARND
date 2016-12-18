@@ -1,4 +1,32 @@
 import math
+import cv2
+import numpy as np
+
+def threshold_image_color(img, red_threshold, green_threshold, blue_threshold):
+    """
+    Performs image thresholding for color images.
+    """
+    image = np.copy(img)
+    idx1 = img[:, :, 0] < red_threshold
+    idx2 = img[:, :, 1] < green_threshold
+    idx3 = img[:, :, 2] < blue_threshold
+    image[idx1 | idx2 | idx3] = [0, 0, 0]
+    image[~(idx1 | idx2 | idx3)] = [255, 255, 255]
+    return image
+
+def threshold_image_gray(img, threshold):
+    """
+    Performs image thresholding for grayscale images.
+    """
+    image = np.copy(img)
+    idx = img < threshold
+    image[idx] = 0
+    image[~idx] = 255
+    return image
+
+def histeq(img):
+    """Performs histogram equalization on the image"""
+    return cv2.equalizeHist(img)
 
 def grayscale(img):
     """Applies the Grayscale transform
@@ -35,7 +63,7 @@ def region_of_interest(img, vertices):
         ignore_mask_color = 255
         
     #filling pixels inside the polygon defined by "vertices" with the fill color    
-    cv2.fillPoly(mask, vertices, ignore_mask_color)
+    cv2.fillPoly(mask, [vertices], ignore_mask_color)
     
     #returning the image only where mask pixels are nonzero
     masked_image = cv2.bitwise_and(img, mask)
@@ -76,7 +104,7 @@ def hough_lines(img, rho, theta, threshold, min_line_len, max_line_gap):
 
 # Python 3 has support for cool math symbols.
 
-def weighted_img(img, initial_img, alpha=0.8, beta=1.0, lambda=0.0):
+def weighted_img(img, initial_img, alpha=0.8, beta=1.0, lambd=0.0):
     """
     `img` is the output of the hough_lines(), An image with lines drawn on it.
     Should be a blank image (all black) with lines drawn on it.
@@ -85,7 +113,7 @@ def weighted_img(img, initial_img, alpha=0.8, beta=1.0, lambda=0.0):
     
     The result image is computed as follows:
     
-    initial_img * alpha + img * beta + lambda
+    initial_img * alpha + img * beta + lambd
     NOTE: initial_img and img must be the same shape!
     """
-    return cv2.addWeighted(initial_img, alpha, img, beta, lambda)
+    return cv2.addWeighted(initial_img, alpha, img, beta, lambd)
