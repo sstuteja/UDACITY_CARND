@@ -33,8 +33,11 @@ for vid in vidlist:
     (filename, file_extension) = os.path.splitext(vid)
 
     cap = cv2.VideoCapture(vid)
-    fourcc = cv2.VideoWriter_fourcc(*'XVID')
-    out = cv2.VideoWriter(filename + "_PROCESSED" + '.avi', fourcc, 20.0, (640, 480))
+    (ret, frame) = cap.read()
+    fourcc = cv2.VideoWriter_fourcc(*'MJPG')
+    out = cv2.VideoWriter(filename + "_PROCESSED" + '.avi', fourcc, 20.0, (frame.shape[1], frame.shape[0]))
+    cap.release()
+    cap = cv2.VideoCapture(vid)
 
     while cap.isOpened():
         (ret, frame) = cap.read()
