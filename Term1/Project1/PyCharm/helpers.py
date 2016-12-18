@@ -2,26 +2,17 @@ import math
 import cv2
 import numpy as np
 
-def lane_detect(image, UseOpenCV=False):
+def lane_detect(image):
     """Perform lane detection"""
 
-    # Obtain grayscale version of this image
-    if not UseOpenCV:
-        gray_image = grayscale(image)
-    else:
-        gray_image = grayscale_OpenCV(image)
-
     # Apply Gaussian blurring
-    blur_image = gaussian_blur(gray_image, kernel_size=3)
-
-    # Perform histogram equalization
-    histeq_image = histeq(blur_image)
+    blur_image = gaussian_blur(image, kernel_size=3)
 
     # Perform thresholding
-    binary_image = threshold_image_gray(histeq_image, threshold=220)
+    binary_image = threshold_image_gray(blur_image, threshold=220)
 
     # Perform Canny edge detection
-    edge_image = canny(binary_image, low_threshold=100, high_threshold=200)
+    edge_image = canny(binary_image, low_threshold=150, high_threshold=200)
 
     # Perform region masking
     ysize = image.shape[0]
@@ -62,8 +53,10 @@ def threshold_image_gray(img, threshold):
     return image
 
 def histeq(img):
-    """Performs histogram equalization on the image"""
-    return cv2.equalizeHist(img)
+    red = cv2.equalizeHist(img[:, :, 0])
+    green = cv2.equalizeHist(img[:, :, 1])
+    blue = cv2.equalizeHist(img[:, :, 2])
+    return cv2.merge((red, green, blue))
 
 def grayscale(img):
     """Applies the Grayscale transform

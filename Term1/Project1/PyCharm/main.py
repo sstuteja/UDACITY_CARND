@@ -11,7 +11,8 @@ imglist = ['test_images/solidWhiteCurve.jpg', \
            'test_images/solidYellowCurve.jpg', \
            'test_images/solidYellowCurve2.jpg', \
            'test_images/solidYellowLeft.jpg', \
-           'test_images/whiteCarLaneSwitch.jpg']
+           'test_images/whiteCarLaneSwitch.jpg', \
+           'test_images/CementRoad.jpg']
 for img in imglist:
     image = mpimg.imread(img)
     final_image = helpers.lane_detect(image)
@@ -42,7 +43,7 @@ for vid in vidlist:
     while cap.isOpened():
         (ret, frame) = cap.read()
         if ret:
-            final_image = helpers.lane_detect(frame, UseOpenCV=True)
+            final_image = helpers.lane_detect(frame)
             out.write(final_image)
             cv2.imshow('final_image', final_image)
             if cv2.waitKey(1) & 0xFF == ord('q'):
