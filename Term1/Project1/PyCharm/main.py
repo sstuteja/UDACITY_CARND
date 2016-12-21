@@ -6,6 +6,7 @@ import os
 import cv2
 
 # Step 1: Performing lane detection on all test images
+"""
 imglist = ['test_images/solidWhiteCurve.jpg', \
            'test_images/solidWhiteRight.jpg', \
            'test_images/solidYellowCurve.jpg', \
@@ -19,6 +20,7 @@ for img in imglist:
 
     (filename, file_extension) = os.path.splitext(img)
     mpimg.imsave(filename + "_PROCESSED" + file_extension, final_image)
+"""
 
 cap = cv2.VideoCapture(0)
 

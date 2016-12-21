@@ -138,10 +138,10 @@ def draw_lines(img, lines, color=[255, 0, 0], thickness=2):
     Y2_RIGHT = 0.65 * img.shape[0]
     Y1_LEFT = img.shape[0]
     Y1_RIGHT = img.shape[0]
-    Slope_Left_LLIM = -55 * math.pi / 180
-    Slope_Left_ULIM = -30 * math.pi / 180
-    Slope_Right_LLIM = 30 * math.pi / 180
-    Slope_Right_ULIM = 55 * math.pi / 180
+    Slope_Left_LLIM = -65 * math.pi / 180
+    Slope_Left_ULIM = -20 * math.pi / 180
+    Slope_Right_LLIM = 20 * math.pi / 180
+    Slope_Right_ULIM = 65 * math.pi / 180
     Sum_SlopeLeft = 0.0
     Sum_SlopeRight = 0.0
     Count_SlopeLeft = 0.0
@@ -149,18 +149,20 @@ def draw_lines(img, lines, color=[255, 0, 0], thickness=2):
     for line in lines:
         for x1, y1, x2, y2 in line:
             thisSlopeAngle = math.atan2(y2 - y1, x2 - x1)
-            if thisSlopeAngle >= Slope_Left_LLIM and thisSlopeAngle <= Slope_Left_ULIM and x1 <= 0.5*img.shape[1] and x2 <= 0.5*img.shape[1]:
+            if x1 <= 0.5*img.shape[1] and x2 <= 0.5*img.shape[1]:
                 list_x_left.extend([x1, x2])
                 list_y_left.extend([y1, y2])
                 Sum_SlopeLeft += thisSlopeAngle
                 Count_SlopeLeft += 1.0
-            elif thisSlopeAngle >= Slope_Right_LLIM and thisSlopeAngle <= Slope_Right_ULIM and x1 >= 0.7*img.shape[1] and x2 >= 0.7*img.shape[1]:
+            elif x1 >= 0.6*img.shape[1] and x2 >= 0.6*img.shape[1]:
                 list_x_right.extend([x1, x2])
                 list_y_right.extend([y1, y2])
                 Sum_SlopeRight += thisSlopeAngle
                 Count_SlopeRight += 1.0
 
-    if len(list_x_left) > 2 and len(list_y_left) > 2:
+            # cv2.line(img, (x1, y1), (x2, y2), color, thickness)
+
+    if len(list_x_left) >= 2 and len(list_y_left) >= 2:
         min_list_x_left = min(list_x_left)
         max_list_x_left = max(list_x_left)
 
@@ -172,15 +174,13 @@ def draw_lines(img, lines, color=[255, 0, 0], thickness=2):
         list_x_left = list_x_left_array.tolist()
         list_y_left = list_y_left_array.tolist()
 
-        AverageSlopeAngleLeft = Sum_SlopeLeft/Count_SlopeLeft
-        AverageSlopeAngleLeftDegrees = AverageSlopeAngleLeft * 180.0/math.pi
-        AverageSlopeLeft = math.tan(AverageSlopeAngleLeft)
-        if math.fabs(AverageSlopeLeft) >= 0.01:
-            X1_LEFT = ((Y1_LEFT - list_y_left[0]) / AverageSlopeLeft) + list_x_left[0]
-            X2_LEFT = ((Y2_LEFT - list_y_left[-1]) / AverageSlopeLeft) + list_x_left[-1]
+        COEFFS_LEFT = np.polyfit(list_x_left_array, list_y_left_array, 1)
+        if math.tan(Slope_Left_ULIM) >= COEFFS_LEFT[0] >= math.tan(Slope_Left_LLIM):
+            X1_LEFT = (Y1_LEFT - COEFFS_LEFT[1])/COEFFS_LEFT[0]
+            X2_LEFT = (Y2_LEFT - COEFFS_LEFT[1])/COEFFS_LEFT[0]
             cv2.line(img, (int(X1_LEFT), int(Y1_LEFT)), (int(X2_LEFT), int(Y2_LEFT)), color, thickness)
 
-    if len(list_x_right) > 2 and len(list_y_right) > 2:
+    if len(list_x_right) >= 2 and len(list_y_right) >= 2:
         min_list_x_right = min(list_x_right)
         max_list_x_right = max(list_x_right)
 
@@ -192,14 +192,12 @@ def draw_lines(img, lines, color=[255, 0, 0], thickness=2):
         list_x_right = list_x_right_array.tolist()
         list_y_right = list_y_right_array.tolist()
 
-        AverageSlopeAngleRight = Sum_SlopeRight/Count_SlopeRight
-        AverageSlopeAngleRightDegrees = AverageSlopeAngleRight * 180.0/math.pi
-        AverageSlopeRight = math.tan(Sum_SlopeRight/Count_SlopeRight)
-        if math.fabs(AverageSlopeRight) >= 0.01:
-            X1_RIGHT = ((Y1_RIGHT - list_y_right[-1]) / AverageSlopeRight) + list_x_right[-1]
-            X2_RIGHT = ((Y2_RIGHT - list_y_right[0]) / AverageSlopeRight) + list_x_right[0]
-            cv2.line(img, (int(X1_RIGHT), int(Y1_RIGHT)), (int(X2_RIGHT), int(Y2_RIGHT)), color, thickness)
+        COEFFS_RIGHT = np.polyfit(list_x_right_array, list_y_right_array, 1)
 
+        if math.tan(Slope_Right_ULIM) >= COEFFS_RIGHT[0] >= math.tan(Slope_Right_LLIM):
+            X1_RIGHT = (Y1_RIGHT - COEFFS_RIGHT[1]) / COEFFS_RIGHT[0]
+            X2_RIGHT = (Y2_RIGHT - COEFFS_RIGHT[1]) / COEFFS_RIGHT[0]
+            cv2.line(img, (int(X1_RIGHT), int(Y1_RIGHT)), (int(X2_RIGHT), int(Y2_RIGHT)), color, thickness)
 
 def hough_lines(img, rho, theta, threshold, min_line_len, max_line_gap):
     """
