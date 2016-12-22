@@ -139,8 +139,8 @@ def draw_lines(img, lines, color=[255, 0, 0], thickness=2):
     Y1_LEFT = img.shape[0]
     Y1_RIGHT = img.shape[0]
     Slope_Left_LLIM = -65 * math.pi / 180
-    Slope_Left_ULIM = -20 * math.pi / 180
-    Slope_Right_LLIM = 20 * math.pi / 180
+    Slope_Left_ULIM = -25 * math.pi / 180
+    Slope_Right_LLIM = 25 * math.pi / 180
     Slope_Right_ULIM = 65 * math.pi / 180
     Sum_SlopeLeft = 0.0
     Sum_SlopeRight = 0.0
@@ -154,7 +154,7 @@ def draw_lines(img, lines, color=[255, 0, 0], thickness=2):
                 list_y_left.extend([y1, y2])
                 Sum_SlopeLeft += thisSlopeAngle
                 Count_SlopeLeft += 1.0
-            elif x1 >= 0.6*img.shape[1] and x2 >= 0.6*img.shape[1]:
+            elif x1 >= 0.55*img.shape[1] and x2 >= 0.55*img.shape[1]:
                 list_x_right.extend([x1, x2])
                 list_y_right.extend([y1, y2])
                 Sum_SlopeRight += thisSlopeAngle
