@@ -122,11 +122,6 @@ void UKF::ProcessMeasurement(MeasurementPackage meas_package) {
 
 		time_us_ = meas_package.timestamp_;
 		is_initialized_ = true;
-		cout << "------------------------------------------------------------" << endl;
-		cout << "INIT" << endl;
-		cout << "x_ = " << x_ << endl;
-		cout << "P_ = " << P_ << endl;
-		cout << "------------------------------------------------------------" << endl;
 		return;
 	}
 
@@ -225,12 +220,6 @@ void UKF::Prediction(double delta_t) {
 		diffx = Xsig_pred_.col(ctr) - x_;
 		P_ = P_ + weights_(ctr) * diffx * diffx.transpose();
 	}
-
-	cout << "------------------------------------------------------------" << endl;
-	cout << "PREDICTION" << endl;
-	cout << "x_ = " << x_ << endl;
-	cout << "P_ = " << P_ << endl;
-	cout << "------------------------------------------------------------" << endl;
 }
 
 /**
@@ -296,12 +285,6 @@ void UKF::UpdateLidar(MeasurementPackage meas_package) {
 
 	//Calculate NIS_laser_
 	NIS_laser_ = (diffz.transpose() * S.inverse() * diffz)(0);
-
-	cout << "------------------------------------------------------------" << endl;
-	cout << "UPDATE - LIDAR" << endl;
-	cout << "x_ = " << x_ << endl;
-	cout << "P_ = " << P_ << endl;
-	cout << "------------------------------------------------------------" << endl;
 }
 
 /**
@@ -389,10 +372,4 @@ void UKF::UpdateRadar(MeasurementPackage meas_package) {
 
 	//Calculate NIS_radar_
 	NIS_radar_ = (diffz.transpose() * S.inverse() * diffz)(0);
-
-	cout << "------------------------------------------------------------" << endl;
-	cout << "UPDATE - RADAR" << endl;
-	cout << "x_ = " << x_ << endl;
-	cout << "P_ = " << P_ << endl;
-	cout << "------------------------------------------------------------" << endl;
 }
