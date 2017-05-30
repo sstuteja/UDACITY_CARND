@@ -17,6 +17,13 @@ public:
   double Ki;
   double Kd;
 
+  double diff_cte;
+  double prev_cte;
+  double int_cte;
+  double total_err;
+
+  unsigned long count;
+
   /*
   * Constructor
   */
