@@ -41,10 +41,10 @@ void PID::UpdateError(double cte) {
 		this->diff_cte = cte - this->prev_cte;
 		this->prev_cte = cte;
 	}
-	this->count++;
+	this->count = this->count + 1;
 }
 
 double PID::TotalError() {
-	return 0.0;
+	return this->int_cte;
 }
 
