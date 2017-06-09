@@ -15,10 +15,10 @@ PID::PID() {
 	Ki = 0.0;
 	Kd = 0.0;
 
-	diff_cte = 0.0;
-	int_cte = 0.0;
+	diff_err = 0.0;
+	int_err = 0.0;
 	total_err = 0.0;
-	prev_cte = 0.0;
+	prev_err = 0.0;
 
 	count = 0;
 }
@@ -31,20 +31,20 @@ void PID::Init(double Kp, double Ki, double Kd) {
 	this->Kd = Kd;
 }
 
-void PID::UpdateError(double cte) {
-	this->int_cte += cte;
+void PID::UpdateError(double err) {
+	this->int_err += err;
 	if (this->count == 0) {
-		this->diff_cte = 0.0;
-		this->prev_cte = cte;
+		this->diff_err = 0.0;
+		this->prev_err = err;
 	}
 	else {
-		this->diff_cte = cte - this->prev_cte;
-		this->prev_cte = cte;
+		this->diff_err = err - this->prev_err;
+		this->prev_err = err;
 	}
 	this->count = this->count + 1;
 }
 
 double PID::TotalError() {
-	return this->int_cte;
+	return this->int_err;
 }
 

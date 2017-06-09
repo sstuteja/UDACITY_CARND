@@ -17,9 +17,9 @@ public:
   double Ki;
   double Kd;
 
-  double diff_cte;
-  double prev_cte;
-  double int_cte;
+  double diff_err;
+  double prev_err;
+  double int_err;
   double total_err;
 
   unsigned long count;
@@ -42,7 +42,7 @@ public:
   /*
   * Update the PID error variables given cross track error.
   */
-  void UpdateError(double cte);
+  void UpdateError(double err);
 
   /*
   * Calculate the total PID error.
