@@ -111,7 +111,7 @@ int main() {
           double throttle_value;
 		  
 		  //Fitting a 3rd order polynomial
-		  auto coeffs = polyfit(ptsx, ptsy, 3);
+		  auto coeffs = polyfit(ptsx_eigen, ptsy_eigen, 3);
 		  
 		  //Cross track error
 		  double cte = polyeval(coeffs, px) - py;
