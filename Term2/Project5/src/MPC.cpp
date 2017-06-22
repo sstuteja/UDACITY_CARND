@@ -8,7 +8,7 @@ using CppAD::AD;
 
 // TODO: Set the timestep length and duration
 const size_t N = 25;
-const double dt = 0.1;
+const double dt = 0.01;
 
 // This value assumes the model presented in the classroom is used.
 //
@@ -34,8 +34,8 @@ size_t epsi_start = cte_start + N;
 size_t delta_start = epsi_start + N;
 size_t a_start = delta_start + N - 1;
 
-// Set up reference velocity (mph)
-const double ref_v = 40.0;
+// Set up reference velocity (m/s)
+const double ref_v = 10.0;
 
 class FG_eval {
  public:
@@ -64,12 +64,12 @@ class FG_eval {
 	// Step 2: Cost based on the use of actuators, which is to be minimized
 	for (unsigned t = 0; t < N - 1; ++t) {
 		fg[0] += CppAD::pow(vars[delta_start + t], 2);
-		fg[0] += CppAD::pow(vars[a_start + t], 2);
+		fg[0] += 10.0*CppAD::pow(vars[a_start + t], 2);
 	}
 	
 	// Step 3: Cost based on the value gap between sequential actuations
 	for (unsigned t = 0; t < N - 2; ++t) {
-		fg[0] += 100.0 * CppAD::pow(vars[delta_start + t - 1] - vars[delta_start + t], 2);
+		fg[0] += 500.0 * CppAD::pow(vars[delta_start + t - 1] - vars[delta_start + t], 2);
 		fg[0] += CppAD::pow(vars[a_start + t - 1] - vars[a_start + t], 2);
 	}
 	
@@ -99,20 +99,20 @@ class FG_eval {
 		AD<double> epsi0 = vars[epsi_start + t - 1];
 		
 		//The actuation at time t
-		AD<double> delta0 = -vars[delta_start + t - 1]; //Minus sign to account for convention change for the simulator
+		AD<double> delta0 = vars[delta_start + t - 1]; //Minus sign to account for convention change for the simulator
 		AD<double> a0 = vars[a_start + t - 1];
 		
 		//Assuming a 3rd order polynomial, as that should work for most roads (as recommended in the class)
-		AD<double> f0 = coeffs[0] + coeffs[1]*x0 + coeffs[2]*x0*x0 + coeffs[3]*x0*x0*x0;
-		AD<double> psides0 = CppAD::atan(coeffs[1] + 2*coeffs[2]*x0 + 3*coeffs[3]*x0*x0);
+		AD<double> f0 = coeffs[0] + coeffs[1]*x0 + coeffs[2]*CppAD::pow(x0, 2);
+		AD<double> psides0 = CppAD::atan(coeffs[1] + 2*coeffs[2]*x0);
 		
 		//Now using the model information to set up the constraints
 		fg[1 + x_start + t] = x1 - (x0 + v0 * CppAD::cos(psi0) * dt);
 		fg[1 + y_start + t] = y1 - (y0 + v0 * CppAD::sin(psi0) * dt);
-		fg[1 + psi_start + t] = psi1 - (psi0 + v0*delta0*dt/Lf);
+		fg[1 + psi_start + t] = psi1 - (psi0 - v0*delta0*dt/Lf);
 		fg[1 + v_start + t] = v1 - (v0 + a0*dt);
 		fg[1 + cte_start + t] = cte1 - ((f0 - y0) + v0 * CppAD::sin(epsi0) * dt);
-		fg[1 + epsi_start + t] = epsi1 - ((psi0 - psides0) + v0*delta0*dt/Lf);
+		fg[1 + epsi_start + t] = epsi1 - ((psi0 - psides0) - v0*delta0*dt/Lf);
 		
 	}
   }
@@ -176,6 +176,20 @@ vector<double> MPC::Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs) {
     constraints_lowerbound[i] = 0.0;
     constraints_upperbound[i] = 0.0;
   }
+  
+  constraints_lowerbound[x_start] = state[0];
+  constraints_lowerbound[y_start] = state[1];
+  constraints_lowerbound[psi_start] = state[2];
+  constraints_lowerbound[v_start] = state[3];
+  constraints_lowerbound[cte_start] = state[4];
+  constraints_lowerbound[epsi_start] = state[5];
+  
+  constraints_upperbound[x_start] = state[0];
+  constraints_upperbound[y_start] = state[1];
+  constraints_upperbound[psi_start] = state[2];
+  constraints_upperbound[v_start] = state[3];
+  constraints_upperbound[cte_start] = state[4];
+  constraints_upperbound[epsi_start] = state[5];
 
   // object that computes objective and constraints
   FG_eval fg_eval(coeffs);
@@ -212,11 +226,16 @@ vector<double> MPC::Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs) {
   // Cost
   auto cost = solution.obj_value;
   std::cout << "Cost " << cost << std::endl;
+  std::cout << "Size of solution.x: " << solution.x.size() << std::endl;
 
   // TODO: Return the first actuator values. The variables can be accessed with
   // `solution.x[i]`.
   //
   // {...} is shorthand for creating a vector, so auto x1 = {1.0,2.0}
   // creates a 2 element double vector.
-  return {solution.x[0], solution.x[1], solution.x[2], solution.x[3], solution.x[4], solution.x[5], solution.x[6], solution.x[7]};
+  std::vector<double> result;
+  for (unsigned ctr = 0; ctr < solution.x.size(); ++ctr) {
+	  result.push_back(solution.x[ctr]);
+  }
+  return result;
 }

@@ -91,6 +91,7 @@ int main() {
           double py = j[1]["y"];
           double psi = j[1]["psi"];
           double v = j[1]["speed"];
+		  v = v * 0.44704 //Convert to m/s
 
 	  Eigen::VectorXd ptsx_eigen(ptsx.size());
 	  Eigen::VectorXd ptsy_eigen(ptsy.size());
@@ -109,27 +110,45 @@ int main() {
           */
           double steer_value;
           double throttle_value;
+		  const size_t N = 25;
+		  size_t x_start = 0;
+	      size_t y_start = x_start + N;
+		  size_t psi_start = y_start + N;
+		  size_t v_start = psi_start + N;
+		  size_t cte_start = v_start + N;
+		  size_t epsi_start = cte_start + N;
+		  size_t delta_start = epsi_start + N;
+		  size_t a_start = delta_start + N - 1;
 		  
 		  //Fitting a 3rd order polynomial
-		  auto coeffs = polyfit(ptsx_eigen, ptsy_eigen, 3);
+		  auto coeffs = polyfit(ptsx_eigen, ptsy_eigen, 2);
 		  
 		  //Cross track error
 		  double cte = polyeval(coeffs, px) - py;
 		  //Orientation error
-		  double epsi = psi - atan(coeffs[1] + coeffs[2]*px + coeffs[3]*px*px);
+		  double epsi = psi - atan(coeffs[1] + 2.0*coeffs[2]*px);
 		  
 		  Eigen::VectorXd state(6);
 		  state << px, py, psi, v, cte, epsi;
 		  
 		  auto vars = mpc.Solve(state, coeffs);
-		  steer_value = vars[6]/(25.0 * M_PI/180.0);
-		  throttle_value = vars[7];		  
+		  steer_value = -vars[delta_start]/(25.0 * M_PI/180.0);
+		  throttle_value = vars[a_start];		  
 
           json msgJson;
           // NOTE: Remember to divide by deg2rad(25) before you send the steering value back.
           // Otherwise the values will be in between [-deg2rad(25), deg2rad(25] instead of [-1, 1].
           msgJson["steering_angle"] = steer_value;
           msgJson["throttle"] = throttle_value;
+		  
+		  cout << " x           " << px << endl;
+          cout << " y           " << py << endl;
+          cout << " psi         " << psi << endl;
+          cout << " v           " << v << endl;
+          cout << " cte         " << cte << endl;
+          cout << " epsi        " << epsi << endl;
+          cout << " steer_value " << steer_value << endl ;
+		  cout << " throttle    " << throttle_value << endl ;
 
           //Display the MPC predicted trajectory 
           vector<double> mpc_x_vals;
@@ -137,8 +156,10 @@ int main() {
 
           //.. add (x,y) points to list here, points are in reference to the vehicle's coordinate system
           // the points in the simulator are connected by a Green line
-		  mpc_x_vals.push_back(vars[0]);
-		  mpc_y_vals.push_back(vars[1]);
+		  for (unsigned ctr = 0; ctr < N; ++ctr) {
+			  mpc_x_vals.push_back(vars[x_start + ctr]);
+			  mpc_y_vals.push_back(vars[y_start + ctr]);
+		  }
 
           msgJson["mpc_x"] = mpc_x_vals;
           msgJson["mpc_y"] = mpc_y_vals;
@@ -167,7 +188,7 @@ int main() {
           //
           // NOTE: REMEMBER TO SET THIS TO 100 MILLISECONDS BEFORE
           // SUBMITTING.
-          this_thread::sleep_for(chrono::milliseconds(100));
+          this_thread::sleep_for(chrono::milliseconds(0));
           ws.send(msg.data(), msg.length(), uWS::OpCode::TEXT);
         }
       } else {
