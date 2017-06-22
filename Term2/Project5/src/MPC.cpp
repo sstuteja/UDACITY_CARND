@@ -69,7 +69,7 @@ class FG_eval {
 	
 	// Step 3: Cost based on the value gap between sequential actuations
 	for (unsigned t = 0; t < N - 2; ++t) {
-		fg[0] += CppAD::pow(vars[delta_start + t - 1] - vars[delta_start + t], 2);
+		fg[0] += 100.0 * CppAD::pow(vars[delta_start + t - 1] - vars[delta_start + t], 2);
 		fg[0] += CppAD::pow(vars[a_start + t - 1] - vars[a_start + t], 2);
 	}
 	
@@ -141,7 +141,7 @@ vector<double> MPC::Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs) {
   // Initial value of the independent variables.
   // SHOULD BE 0 besides initial state.
   Dvector vars(n_vars);
-  for (int i = 0; i < n_vars; i++) {
+  for (unsigned i = 0; i < n_vars; i++) {
     vars[i] = 0.0;
   }
 
@@ -172,7 +172,7 @@ vector<double> MPC::Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs) {
   // Should be 0 besides initial state.
   Dvector constraints_lowerbound(n_constraints);
   Dvector constraints_upperbound(n_constraints);
-  for (int i = 0; i < n_constraints; i++) {
+  for (unsigned i = 0; i < n_constraints; i++) {
     constraints_lowerbound[i] = 0.0;
     constraints_upperbound[i] = 0.0;
   }

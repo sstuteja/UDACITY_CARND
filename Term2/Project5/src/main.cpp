@@ -92,6 +92,15 @@ int main() {
           double psi = j[1]["psi"];
           double v = j[1]["speed"];
 
+	  Eigen::VectorXd ptsx_eigen(ptsx.size());
+	  Eigen::VectorXd ptsy_eigen(ptsy.size());
+          for(unsigned ctr = 0; ctr < ptsx.size(); ++ctr) {
+		ptsx_eigen(ctr) = ptsx[ctr];
+	  }
+	  for(unsigned ctr = 0; ctr < ptsy.size(); ++ctr) {
+		ptsy_eigen(ctr) = ptsy[ctr];
+	  }
+
           /*
           * TODO: Calculate steering angle and throttle using MPC.
           *
