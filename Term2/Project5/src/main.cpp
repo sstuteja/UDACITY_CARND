@@ -91,16 +91,24 @@ int main() {
           double py = j[1]["y"];
           double psi = j[1]["psi"];
           double v = j[1]["speed"];
-		  v = v * 0.44704 //Convert to m/s
 
-	  Eigen::VectorXd ptsx_eigen(ptsx.size());
-	  Eigen::VectorXd ptsy_eigen(ptsy.size());
+		  //Shift coordinate system to use the car as reference
+		  for (unsigned ctr = 0; ctr < ptsx.size(); ++ctr) {
+			  double shift_x = ptsx[ctr] - px;
+			  double shift_y = ptsy[ctr] - py;
+			  
+			  //Transform psi to 0 (rotation)
+			  ptsx[ctr] = shift_x*cos(0 - psi) - shift_y*sin(0 - psi);
+			  ptsy[ctr] = shift_x*sin(0 - psi) + shift_y*cos(0 - psi);
+		  }
+	      Eigen::VectorXd ptsx_eigen(ptsx.size());
+	      Eigen::VectorXd ptsy_eigen(ptsy.size());
           for(unsigned ctr = 0; ctr < ptsx.size(); ++ctr) {
-		ptsx_eigen(ctr) = ptsx[ctr];
-	  }
-	  for(unsigned ctr = 0; ctr < ptsy.size(); ++ctr) {
-		ptsy_eigen(ctr) = ptsy[ctr];
-	  }
+			  ptsx_eigen(ctr) = ptsx[ctr];
+		  }
+		  for(unsigned ctr = 0; ctr < ptsy.size(); ++ctr) {
+			  ptsy_eigen(ctr) = ptsy[ctr];
+		  }
 
           /*
           * TODO: Calculate steering angle and throttle using MPC.
@@ -123,16 +131,16 @@ int main() {
 		  //Fitting a 3rd order polynomial
 		  auto coeffs = polyfit(ptsx_eigen, ptsy_eigen, 2);
 		  
-		  //Cross track error
-		  double cte = polyeval(coeffs, px) - py;
+		  //Cross track error. The px, py is now the origin, and psi is //0 too
+		  double cte = polyeval(coeffs, 0.0);
 		  //Orientation error
-		  double epsi = psi - atan(coeffs[1] + 2.0*coeffs[2]*px);
+		  double epsi = 0.0 - atan(coeffs[1]);
 		  
 		  Eigen::VectorXd state(6);
-		  state << px, py, psi, v, cte, epsi;
+		  state << 0.0, 0.0, 0.0, v, cte, epsi;
 		  
 		  auto vars = mpc.Solve(state, coeffs);
-		  steer_value = -vars[delta_start]/(25.0 * M_PI/180.0);
+		  steer_value = vars[delta_start]/(25.0 * M_PI/180.0);
 		  throttle_value = vars[a_start];		  
 
           json msgJson;
@@ -140,15 +148,6 @@ int main() {
           // Otherwise the values will be in between [-deg2rad(25), deg2rad(25] instead of [-1, 1].
           msgJson["steering_angle"] = steer_value;
           msgJson["throttle"] = throttle_value;
-		  
-		  cout << " x           " << px << endl;
-          cout << " y           " << py << endl;
-          cout << " psi         " << psi << endl;
-          cout << " v           " << v << endl;
-          cout << " cte         " << cte << endl;
-          cout << " epsi        " << epsi << endl;
-          cout << " steer_value " << steer_value << endl ;
-		  cout << " throttle    " << throttle_value << endl ;
 
           //Display the MPC predicted trajectory 
           vector<double> mpc_x_vals;
@@ -170,8 +169,12 @@ int main() {
 
           //.. add (x,y) points to list here, points are in reference to the vehicle's coordinate system
           // the points in the simulator are connected by a Yellow line
-		  next_x_vals = ptsx;
-		  next_y_vals = ptsy;
+		  unsigned num_points = 25;
+		  double poly_inc = 2.5;
+		  for (unsigned ctr = 1; ctr < num_points; ++ctr) {
+			  next_x_vals.push_back(poly_inc*ctr);
+			  next_y_vals.push_back(polyeval(coeffs, poly_inc*ctr));
+		  }
 
           msgJson["next_x"] = next_x_vals;
           msgJson["next_y"] = next_y_vals;

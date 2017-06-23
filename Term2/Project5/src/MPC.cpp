@@ -8,7 +8,7 @@ using CppAD::AD;
 
 // TODO: Set the timestep length and duration
 const size_t N = 25;
-const double dt = 0.01;
+const double dt = 0.1;
 
 // This value assumes the model presented in the classroom is used.
 //
@@ -35,6 +35,8 @@ size_t delta_start = epsi_start + N;
 size_t a_start = delta_start + N - 1;
 
 // Set up reference velocity (m/s)
+const double ref_cte = 0.0;
+const double ref_epsi = 0.0;
 const double ref_v = 10.0;
 
 class FG_eval {
@@ -56,15 +58,15 @@ class FG_eval {
 	// This is where the cost function is defined. We start with the cost function demonstrated in the class
 	// Step 1: Cost based on reference state
 	for (unsigned t = 0; t < N; ++t) {
-		fg[0] += CppAD::pow(vars[cte_start + t], 2);
-		fg[0] += CppAD::pow(vars[epsi_start + t], 2);
+		fg[0] += 2000.0*CppAD::pow(vars[cte_start + t] - ref_cte, 2);
+		fg[0] += 2000.0*CppAD::pow(vars[epsi_start + t] - ref_epsi, 2);
 		fg[0] += CppAD::pow(vars[v_start + t] - ref_v, 2);
 	}
 	
 	// Step 2: Cost based on the use of actuators, which is to be minimized
 	for (unsigned t = 0; t < N - 1; ++t) {
 		fg[0] += CppAD::pow(vars[delta_start + t], 2);
-		fg[0] += 10.0*CppAD::pow(vars[a_start + t], 2);
+		fg[0] += CppAD::pow(vars[a_start + t], 2);
 	}
 	
 	// Step 3: Cost based on the value gap between sequential actuations
@@ -155,17 +157,15 @@ vector<double> MPC::Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs) {
   }
   
   // Step 2: Set bounds for actuator inputs
-  double delta_lowerlimit_deg = -25.0;
-  double delta_upperlimit_deg = 25.0;
+  double delta_limit_deg = 25.0;
   for (unsigned i = delta_start; i < a_start; ++i) {
-	  vars_lowerbound[i] = delta_lowerlimit_deg * M_PI / 180.0;
-	  vars_upperbound[i] = delta_upperlimit_deg * M_PI / 180.0;
+	  vars_lowerbound[i] = -delta_limit_deg * M_PI / 180.0;
+	  vars_upperbound[i] = delta_limit_deg * M_PI / 180.0;
   }
-  double a_lowerlimit = -1.0;
-  double a_upperlimit = 1.0;
+  double a_limit = 1.0;
   for (unsigned i = a_start; i < n_vars; ++i) {
-	  vars_lowerbound[i] = a_lowerlimit;
-	  vars_upperbound[i] = a_upperlimit;
+	  vars_lowerbound[i] = -a_limit;
+	  vars_upperbound[i] = a_limit;
   }
 
   // Lower and upper limits for the constraints
