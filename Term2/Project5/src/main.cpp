@@ -128,7 +128,7 @@ int main() {
 		  size_t a_start = delta_start + N - 1;
 		  
 		  //Fitting a 3rd order polynomial
-		  auto coeffs = polyfit(ptsx_eigen, ptsy_eigen, 2);
+		  auto coeffs = polyfit(ptsx_eigen, ptsy_eigen, 3);
 		  
 		  //Cross track error. The px, py is now the origin, and psi is //0 too
 		  double cte = polyeval(coeffs, 0.0);
