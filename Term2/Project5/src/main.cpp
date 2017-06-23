@@ -118,7 +118,6 @@ int main() {
           */
           double steer_value;
           double throttle_value;
-		  const size_t N = 25;
 		  size_t x_start = 0;
 	      size_t y_start = x_start + N;
 		  size_t psi_start = y_start + N;
