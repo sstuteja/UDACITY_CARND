@@ -91,6 +91,9 @@ int main() {
           double py = j[1]["y"];
           double psi = j[1]["psi"];
           double v = j[1]["speed"];
+		  
+		  //Converting to meters per second
+		  v = v * 0.44704;
 
 		  //Shift coordinate system to use the car as reference
 		  for (unsigned ctr = 0; ctr < ptsx.size(); ++ctr) {
