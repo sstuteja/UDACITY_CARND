@@ -64,14 +64,26 @@ class FG_eval {
 	
 	// Step 2: Cost based on the use of actuators, which is to be minimized
 	for (unsigned t = 0; t < N - 1; ++t) {
-		fg[0] += 80.0 * CppAD::pow(vars[delta_start + t], 2);
-		fg[0] += 1.0 * CppAD::pow(vars[a_start + t], 2);
+		if (t == 0) {
+			fg[0] += 80.0 * CppAD::pow(vars[delta_start + t], 2);
+			fg[0] += 1.0 * CppAD::pow(vars[a_start + t], 2);
+		}
+		else {
+			fg[0] += 80.0 * CppAD::pow(vars[delta_start + t - 1], 2);
+			fg[0] += 1.0 * CppAD::pow(vars[a_start + t - 1], 2);
+		}
 	}
 	
 	// Step 3: Cost based on the value gap between sequential actuations
 	for (unsigned t = 0; t < N - 2; ++t) {
-		fg[0] += 3500.0 * CppAD::pow(vars[delta_start + t - 1] - vars[delta_start + t], 2);
-		fg[0] += 2.0 * CppAD::pow(vars[a_start + t - 1] - vars[a_start + t], 2);
+		if (t == 0) {
+			fg[0] += 3500.0 * CppAD::pow(vars[delta_start + t - 1] - vars[delta_start + t], 2);
+			fg[0] += 2.0 * CppAD::pow(vars[a_start + t - 1] - vars[a_start + t], 2);
+		}
+		else {
+			fg[0] += 3500.0 * CppAD::pow(vars[delta_start + t - 2] - vars[delta_start + t - 1], 2);
+			fg[0] += 2.0 * CppAD::pow(vars[a_start + t - 2] - vars[a_start + t - 1], 2);
+		}
 	}
 	
 	// Set up constraints
@@ -100,8 +112,12 @@ class FG_eval {
 		AD<double> epsi0 = vars[epsi_start + t - 1];
 		
 		//The actuation at time t
-		AD<double> delta0 = vars[delta_start + t - 1]; //Minus sign to account for convention change for the simulator
+		AD<double> delta0 = vars[delta_start + t - 1];
 		AD<double> a0 = vars[a_start + t - 1];
+		if (t >= 2) {
+			delta0 = vars[delta_start + t - 2];
+			a0 = vars[a_start + t - 2];
+		}
 		
 		//Assuming a 3rd order polynomial, as that should work for most roads (as recommended in the class)
 		AD<double> f0 = coeffs[0] + coeffs[1]*x0 + coeffs[2]*CppAD::pow(x0, 2);
