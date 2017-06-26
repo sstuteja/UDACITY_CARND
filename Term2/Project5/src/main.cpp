@@ -121,14 +121,6 @@ int main() {
           */
           double steer_value;
           double throttle_value;
-		  size_t x_start = 0;
-	      size_t y_start = x_start + N;
-		  size_t psi_start = y_start + N;
-		  size_t v_start = psi_start + N;
-		  size_t cte_start = v_start + N;
-		  size_t epsi_start = cte_start + N;
-		  size_t delta_start = epsi_start + N;
-		  size_t a_start = delta_start + N - 1;
 		  
 		  //Fitting a 3rd order polynomial
 		  auto coeffs = polyfit(ptsx_eigen, ptsy_eigen, 3);
@@ -142,8 +134,8 @@ int main() {
 		  state << 0.0, 0.0, 0.0, v, cte, epsi;
 		  
 		  auto vars = mpc.Solve(state, coeffs);
-		  steer_value = vars[delta_start]/(25.0 * M_PI/180.0);
-		  throttle_value = vars[a_start];		  
+		  steer_value = vars[0]/(25.0 * M_PI/180.0);
+		  throttle_value = vars[1];		  
 
           json msgJson;
           // NOTE: Remember to divide by deg2rad(25) before you send the steering value back.
@@ -158,8 +150,8 @@ int main() {
           //.. add (x,y) points to list here, points are in reference to the vehicle's coordinate system
           // the points in the simulator are connected by a Green line
 		  for (unsigned ctr = 0; ctr < N; ++ctr) {
-			  mpc_x_vals.push_back(vars[x_start + ctr]);
-			  mpc_y_vals.push_back(vars[y_start + ctr]);
+			  mpc_x_vals.push_back(vars[2 + ctr]);
+			  mpc_y_vals.push_back(vars[2 + ctr]);
 		  }
 
           msgJson["mpc_x"] = mpc_x_vals;
