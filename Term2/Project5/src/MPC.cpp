@@ -77,11 +77,11 @@ class FG_eval {
 	// Step 3: Cost based on the value gap between sequential actuations
 	for (unsigned t = 0; t < N - 2; ++t) {
 		if (t == 0) {
-			fg[0] += 200.0 * CppAD::pow(vars[delta_start + t - 1] - vars[delta_start + t], 2);
+			fg[0] += 2000.0 * CppAD::pow(vars[delta_start + t - 1] - vars[delta_start + t], 2);
 			fg[0] += 10.0 * CppAD::pow(vars[a_start + t - 1] - vars[a_start + t], 2);
 		}
 		else {
-			fg[0] += 200.0 * CppAD::pow(vars[delta_start + t - 2] - vars[delta_start + t - 1], 2);
+			fg[0] += 2000.0 * CppAD::pow(vars[delta_start + t - 2] - vars[delta_start + t - 1], 2);
 			fg[0] += 10.0 * CppAD::pow(vars[a_start + t - 2] - vars[a_start + t - 1], 2);
 		}
 	}
