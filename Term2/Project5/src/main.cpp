@@ -93,7 +93,7 @@ int main() {
           double v = j[1]["speed"];
 		  
 		  //Converting to meters per second
-		  v = v * 0.44704;
+		  v = v * 1.0;
 
 		  //Shift coordinate system to use the car as reference
 		  for (unsigned ctr = 0; ctr < ptsx.size(); ++ctr) {
@@ -123,7 +123,7 @@ int main() {
           double throttle_value;
 		  
 		  //Fitting a 3rd order polynomial
-		  auto coeffs = polyfit(ptsx_eigen, ptsy_eigen, 3);
+		  auto coeffs = polyfit(ptsx_eigen, ptsy_eigen, 2);
 		  
 		  //Cross track error. The px, py is now the origin, and psi is //0 too
 		  double cte = polyeval(coeffs, 0.0);
@@ -185,7 +185,7 @@ int main() {
           //
           // NOTE: REMEMBER TO SET THIS TO 100 MILLISECONDS BEFORE
           // SUBMITTING.
-          this_thread::sleep_for(chrono::milliseconds(100));
+          this_thread::sleep_for(chrono::milliseconds(0));
           ws.send(msg.data(), msg.length(), uWS::OpCode::TEXT);
         }
       } else {
