@@ -57,32 +57,32 @@ class FG_eval {
 	// This is where the cost function is defined. We start with the cost function demonstrated in the class
 	// Step 1: Cost based on reference state
 	for (unsigned t = 0; t < N; ++t) {
-		fg[0] += 2000.0 * CppAD::pow(vars[cte_start + t] - ref_cte, 2);
-		fg[0] += 2000.0 * CppAD::pow(vars[epsi_start + t] - ref_epsi, 2);
+		fg[0] += 2500.0 * CppAD::pow(vars[cte_start + t] - ref_cte, 2);
+		fg[0] += 2500.0 * CppAD::pow(vars[epsi_start + t] - ref_epsi, 2);
 		fg[0] += 0.1 * CppAD::pow(vars[v_start + t] - ref_v, 2);
 	}
 	
 	// Step 2: Cost based on the use of actuators, which is to be minimized
 	for (unsigned t = 0; t < N - 1; ++t) {
 		if (t == 0) {
-			fg[0] += 20.0 * CppAD::pow(vars[delta_start + t], 2);
+			fg[0] += 40.0 * CppAD::pow(vars[delta_start + t], 2);
 			fg[0] += 1.0 * CppAD::pow(vars[a_start + t], 2);
 		}
 		else {
-			fg[0] += 20.0 * CppAD::pow(vars[delta_start + t], 2);
-			fg[0] += 1.0 * CppAD::pow(vars[a_start + t], 2);
+			fg[0] += 40.0 * CppAD::pow(vars[delta_start + t - 1], 2);
+			fg[0] += 1.0 * CppAD::pow(vars[a_start + t - 1], 2);
 		}
 	}
 	
 	// Step 3: Cost based on the value gap between sequential actuations
 	for (unsigned t = 0; t < N - 2; ++t) {
 		if (t == 0) {
-			fg[0] += 920.0 * CppAD::pow(vars[delta_start + t + 1] - vars[delta_start + t], 2);
+			fg[0] += 12000.0 * CppAD::pow(vars[delta_start + t + 1] - vars[delta_start + t], 2);
 			fg[0] += 2.0 * CppAD::pow(vars[a_start + t + 1] - vars[a_start + t], 2);
 		}
 		else {
-			fg[0] += 920.0 * CppAD::pow(vars[delta_start + t + 1] - vars[delta_start + t], 2);
-			fg[0] += 2.0 * CppAD::pow(vars[a_start + t + 1] - vars[a_start + t], 2);
+			fg[0] += 12000.0 * CppAD::pow(vars[delta_start + t] - vars[delta_start + t - 1], 2);
+			fg[0] += 2.0 * CppAD::pow(vars[a_start + t] - vars[a_start + t - 1], 2);
 		}
 	}
 	
@@ -115,8 +115,8 @@ class FG_eval {
 		AD<double> delta0 = vars[delta_start + t - 1];
 		AD<double> a0 = vars[a_start + t - 1];
 		if (t >= 2) {
-			delta0 = vars[delta_start + t - 1];
-			a0 = vars[a_start + t - 1];
+			delta0 = vars[delta_start + t - 2];
+			a0 = vars[a_start + t - 2];
 		}
 		
 		//Assuming a 3rd order polynomial, as that should work for most roads (as recommended in the class)

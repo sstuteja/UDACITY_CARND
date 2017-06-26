@@ -4,7 +4,7 @@
 #include <vector>
 #include "Eigen-3.3/Eigen/Core"
 
-const size_t N = 10;
+const size_t N = 12;
 const double dt = 0.1;
 
 using namespace std;
