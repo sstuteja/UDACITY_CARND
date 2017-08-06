@@ -26,6 +26,28 @@ const vector <vector<int>> HEURISTIC = {
 		{15,14,13,12,11,10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0}
 		};
 
+/* TO TEST AGAINST A ZERO HEURISTIC */
+/*
+const vector <vector<int>> HEURISTIC = {
+		{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+		{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+		{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+		{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+		{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+		{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+		{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+		{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+		{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+		{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+		{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+		{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+		{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+		{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+		{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+		{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}
+		};
+*/
+
 
 /**
  * Initializes HBF
@@ -227,6 +249,21 @@ HBF::maze_path HBF::search(vector< vector<int> > grid, vector<double> start, vec
 
 
     }
+
+    //Sort by increasing f value for opened
+	bool flag = false;
+	while (flag == false) {
+		flag = true;
+		for (unsigned ctr = 0; ctr < opened.size()-1; ++ctr) {
+			if (opened[ctr].f > opened[ctr+1].f) {
+				flag = false;
+				HBF::maze_s temp;
+				temp.g = opened[ctr].g; temp.x = opened[ctr].x; temp.y = opened[ctr].y; temp.theta = opened[ctr].theta; temp.h = opened[ctr].h; temp.f = opened[ctr].f;
+				opened[ctr].g = opened[ctr+1].g; opened[ctr].x = opened[ctr+1].x; opened[ctr].y = opened[ctr+1].y; opened[ctr].theta = opened[ctr+1].theta; opened[ctr].h = opened[ctr+1].h; opened[ctr].f = opened[ctr+1].f;
+				opened[ctr+1].g = temp.g; opened[ctr+1].x = temp.x; opened[ctr+1].y = temp.y; opened[ctr+1].theta = temp.theta; opened[ctr+1].h = temp.h; opened[ctr+1].f = temp.f;
+			}
+		}
+	}
 
   }
   cout << "no valid path." << endl;
