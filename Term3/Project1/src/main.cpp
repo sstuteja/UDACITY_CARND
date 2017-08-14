@@ -261,7 +261,8 @@ int main() {
                 check_car_s = sensor_fusion[i][5];
 
                 check_car_s += ((double)prev_size*0.02*check_speed);
-                if (fabs(check_car_s - car_s) < HORIZON) {
+                if ((check_car_s < car_s) && (car_s - check_car_s) < HORIZON || (check_car_s > car_s) && (check_car_s - car_s) < HORIZON*0.5) {
+                  //If car will be behind ego vehicle by HORIZON
                   lane_change_left_safe = false;
                 }
               }
@@ -272,7 +273,7 @@ int main() {
                 check_car_s = sensor_fusion[i][5];
 
                 check_car_s += ((double)prev_size*0.02*check_speed);
-                if (fabs(check_car_s - car_s) < HORIZON) {
+                if ((check_car_s < car_s) && (car_s - check_car_s) < HORIZON || (check_car_s > car_s) && (check_car_s - car_s) < HORIZON*0.5) {
                   lane_change_right_safe = false;
                 }
               }
