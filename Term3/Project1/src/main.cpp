@@ -261,7 +261,7 @@ int main() {
                 check_car_s = sensor_fusion[i][5];
 
                 check_car_s += ((double)prev_size*0.02*check_speed);
-                if ((check_car_s > car_s) && ((check_car_s - car_s) < HORIZON)) {
+                if (fabs(check_car_s - car_s) < HORIZON) {
                   lane_change_left_safe = false;
                 }
               }
@@ -272,7 +272,7 @@ int main() {
                 check_car_s = sensor_fusion[i][5];
 
                 check_car_s += ((double)prev_size*0.02*check_speed);
-                if ((check_car_s > car_s) && ((check_car_s - car_s) < HORIZON)) {
+                if (fabs(check_car_s - car_s) < HORIZON) {
                   lane_change_right_safe = false;
                 }
               }
