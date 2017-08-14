@@ -10,6 +10,8 @@
 #include "json.hpp"
 #include "spline.h"
 
+#define HORIZON (30.0)
+
 using namespace std;
 
 // for convenience
@@ -245,33 +247,61 @@ int main() {
               car_s = end_path_s;
             }
             bool too_close = false;
+            bool lane_change_left_safe = true;
+            bool lane_change_right_safe = true;
 
-            //find ref_y to use
+            double vx, vy, check_speed, check_car_s;
+
             for (int i = 0; i < sensor_fusion.size(); ++i) {
-              //car is in my lane
               float d = sensor_fusion[i][6];
-              if (d < (2 + 4*lane + 2) && d > (2 + 4*lane - 2)) {
-                double vx = sensor_fusion[i][3];
-                double vy = sensor_fusion[i][4];
-                double check_speed = sqrt(vx*vx + vy*vy);
-                double check_car_s = sensor_fusion[i][5];
+              if (d < (2 + 4*lane - 2) && d > (2 + 4*lane - 6)) {
+                vx = sensor_fusion[i][3];
+                vy = sensor_fusion[i][4];
+                check_speed = sqrt(vx*vx + vy*vy);
+                check_car_s = sensor_fusion[i][5];
+
+                check_car_s += ((double)prev_size*0.02*check_speed);
+                if ((check_car_s > car_s) && ((check_car_s - car_s) < HORIZON)) {
+                  lane_change_left_safe = false;
+                }
+              }
+              else if (d < (2 + 4*lane + 6) && d > (2 + 4*lane + 2)) {
+                vx = sensor_fusion[i][3];
+                vy = sensor_fusion[i][4];
+                check_speed = sqrt(vx*vx + vy*vy);
+                check_car_s = sensor_fusion[i][5];
+
+                check_car_s += ((double)prev_size*0.02*check_speed);
+                if ((check_car_s > car_s) && ((check_car_s - car_s) < HORIZON)) {
+                  lane_change_right_safe = false;
+                }
+              }
+              else if (d < (2 + 4*lane + 2) && d > (2 + 4*lane - 2)) {
+                vx = sensor_fusion[i][3];
+                vy = sensor_fusion[i][4];
+                check_speed = sqrt(vx*vx + vy*vy);
+                check_car_s = sensor_fusion[i][5];
 
                 check_car_s += ((double)prev_size*0.02*check_speed); //if using previous points can project s value output
                 //check s values greater than mine and s gap
-                if ((check_car_s > car_s) && ((check_car_s - car_s) < 30)) {
-                  //Do some logic here, lower reference velocity so we don't crash into the car in front
-                  //Could also flag to try to change lanes
-                  //ref_vel = 29.5; //mph
+                if ((check_car_s > car_s) && ((check_car_s - car_s) < HORIZON)) {
                   too_close = true;
                 }
               }
             }
 
-            if (too_close) {
-              ref_vel -= 0.224;
+
+            if (too_close && lane_change_left_safe && lane > 0) {
+              lane -= 1;
+            }
+            else if (too_close && lane_change_right_safe && lane < 2) {
+              lane += 1;
+            }
+            else if (too_close) {
+              ref_vel -= 0.224*1.5;
             }
             else if (ref_vel < 49.5) {
-              ref_vel += 0.224;
+              ref_vel += 0.224*1.5;
             }
 
           	json msgJson;
@@ -282,7 +312,7 @@ int main() {
 
           	// TODO: define a path made up of (x,y) points that the car will visit sequentially every .02 seconds
 
-            //Create a list of widely spaced (x,y) waypoints, evenly spaced at 30m
+            //Create a list of widely spaced (x,y) waypoints, evenly spaced at 30m (HORIZON)
             //Later, we will interpolate these waypoints with a spline and fill it in with more points that control
             vector<double> ptsx;
             vector<double> ptsy;
@@ -322,9 +352,9 @@ int main() {
             }
 
             //In Frenet add evenly 30m spaced points ahead of the starting reference
-            vector<double> next_wp0 = getXY(car_s+30.0, (double)(2+4*lane), map_waypoints_s, map_waypoints_x, map_waypoints_y);
-            vector<double> next_wp1 = getXY(car_s+60.0, (double)(2+4*lane), map_waypoints_s, map_waypoints_x, map_waypoints_y);
-            vector<double> next_wp2 = getXY(car_s+90.0, (double)(2+4*lane), map_waypoints_s, map_waypoints_x, map_waypoints_y);
+            vector<double> next_wp0 = getXY(car_s+HORIZON, (double)(2+4*lane), map_waypoints_s, map_waypoints_x, map_waypoints_y);
+            vector<double> next_wp1 = getXY(car_s+2*HORIZON, (double)(2+4*lane), map_waypoints_s, map_waypoints_x, map_waypoints_y);
+            vector<double> next_wp2 = getXY(car_s+3*HORIZON, (double)(2+4*lane), map_waypoints_s, map_waypoints_x, map_waypoints_y);
 
             ptsx.push_back(next_wp0[0]);
             ptsx.push_back(next_wp1[0]);
@@ -356,7 +386,7 @@ int main() {
             }
 
             //Calculate how to break up spline points so that we travel at our desired reference velocity
-            double target_x = 30.0;
+            double target_x = HORIZON;
             double target_y = s(target_x);
             double target_dist = sqrt(target_x*target_x + target_y*target_y);
 
