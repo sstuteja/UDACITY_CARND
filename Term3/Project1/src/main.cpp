@@ -238,10 +238,40 @@ int main() {
           	double end_path_d = j[1]["end_path_d"];
 
           	// Sensor Fusion Data, a list of all other cars on the same side of the road.
-          	auto sensor_fusion = j[1]["sensor_fusion"];
+          	vector<vector<double>> sensor_fusion = j[1]["sensor_fusion"];
 
             // Getting the size of the previous path
             int prev_size = previous_path_x.size();
+
+            int lane = 1;
+
+            double ref_vel = 49.5;
+
+            if (prev_size > 0) {
+              car_s = end_path_s;
+            }
+            bool too_close = false;
+
+            //find ref_y to use
+            for (int i = 0; i < sensor_fusion.size(); ++i) {
+              //car is in my lane
+              float d = sensor_fusion[i][6];
+              if (d < (2 + 4*lane + 2) && d > (2 + 4*lane - 2)) {
+                double vx = sensor_fusion[i][3];
+                double vy = sensor_fusion[i][4];
+                double check_speed = sqrt(vx*vx + vy*vy);
+                double check_car_s = sensor_fusion[i][5];
+
+                check_car_s += ((double)prev_size*0.02*check_speed); //if using previous points can project s value output
+                //check s values greater than mine and s gap
+                if ((check_car_s > car_s) && ((check_car_s - car_s) < 30)) {
+                  //Do some logic here, lower reference velocity so we don't crash into the car in front
+                  //Could also flag to try to change lanes
+                  ref_vel = 29.5; //mph
+                  //too_close = true;
+                }
+              }
+            }
 
           	json msgJson;
 
@@ -291,7 +321,6 @@ int main() {
             }
 
             //In Frenet add evenly 30m spaced points ahead of the starting reference
-            int lane = 1;
             vector<double> next_wp0 = getXY(car_s+30.0, (double)(2+4*lane), map_waypoints_s, map_waypoints_x, map_waypoints_y);
             vector<double> next_wp1 = getXY(car_s+60.0, (double)(2+4*lane), map_waypoints_s, map_waypoints_x, map_waypoints_y);
             vector<double> next_wp2 = getXY(car_s+90.0, (double)(2+4*lane), map_waypoints_s, map_waypoints_x, map_waypoints_y);
@@ -308,7 +337,7 @@ int main() {
               //shift car reference angle to 0 degrees
               double shift_x = ptsx[i] - ref_x;
               double shift_y = ptsy[i] - ref_y;
-              
+
               ptsx[i] = (shift_x * cos(0-ref_yaw) - shift_y * sin(0-ref_yaw));
               ptsy[i] = (shift_x * sin(0-ref_yaw) + shift_y * cos(0-ref_yaw));
             }
@@ -333,7 +362,6 @@ int main() {
             double x_add_on = 0;
 
             //Fill up the rest of our path planner after filling it with previous points, here we will always output
-            double ref_vel = 49.5; //mph
             for (int i = 0; i <= 50 - previous_path_x.size(); ++i) {
               double N = (target_dist/(0.02 * ref_vel/2.24));
               double x_point = x_add_on + (target_x)/N;
