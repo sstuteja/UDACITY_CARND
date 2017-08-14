@@ -245,7 +245,7 @@ int main() {
 
             int lane = 1;
 
-            double ref_vel = 49.5;
+            double ref_vel = 0.0;
 
             if (prev_size > 0) {
               car_s = end_path_s;
@@ -267,10 +267,17 @@ int main() {
                 if ((check_car_s > car_s) && ((check_car_s - car_s) < 30)) {
                   //Do some logic here, lower reference velocity so we don't crash into the car in front
                   //Could also flag to try to change lanes
-                  ref_vel = 29.5; //mph
-                  //too_close = true;
+                  //ref_vel = 29.5; //mph
+                  too_close = true;
                 }
               }
+            }
+
+            if (too_close) {
+              ref_vel -= 0.224;
+            }
+            else if (ref_vel < 49.5) {
+              ref_vel += 0.224;
             }
 
           	json msgJson;
